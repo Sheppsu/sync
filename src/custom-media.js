@@ -39,6 +39,11 @@ const AUDIO_ONLY_CONTENT_TYPES = new Set([
     'audio/opus'
 ]);
 
+const SUBTITLE_CONTENT_TYPES = new Set([
+    'text/vtt',
+    'text/ass'
+])
+
 export function lookup(url, opts) {
     if (!opts) opts = {};
     if (!opts.hasOwnProperty('timeout')) opts.timeout = 10000;
@@ -266,7 +271,7 @@ function validateTextTracks(textTracks) {
             throw new ValidationError('text track URL must be a string');
         validateURL(track.url);
 
-        if (track.contentType !== 'text/vtt')
+        if (!SUBTITLE_CONTENT_TYPES.has(track.contentType))
             throw new ValidationError(
                 `unacceptable text track contentType "${track.contentType}"`
             );
