@@ -39,7 +39,8 @@ Media.prototype = {
                 embed: this.meta.embed,
                 gdrive_subtitles: this.meta.gdrive_subtitles,
                 textTracks: this.meta.textTracks,
-                audioTracks: this.meta.audioTracks
+                audioTracks: this.meta.audioTracks,
+                fonts: this.meta.fonts,
             }
         };
 

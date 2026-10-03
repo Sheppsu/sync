@@ -42,8 +42,11 @@ getSourceLabel = (source) ->
     else
         return "#{source.quality}p #{source.contentType.split('/')[1]}"
 
+isAssTrack = (t) -> t.contentType is 'text/ass'
+assTracks = (data) -> (data?.meta?.textTracks ? []).filter(isAssTrack)
+
 hasAnyTextTracks = (data) ->
-    ntracks = data?.meta?.textTracks?.length ? 0
+    ntracks = (data?.meta?.textTracks ? []).filter((t) -> not isAssTrack(t)).length
     return ntracks > 0
 
 hasAnyAudioTracks = (data) ->
@@ -99,6 +102,7 @@ window.VideoJSPlayer = class VideoJSPlayer extends Player
 
             if data.meta.textTracks
                 data.meta.textTracks.forEach((track) ->
+                    return if isAssTrack(track)
                     label = track.name
                     attrs =
                         src: track.url
@@ -173,6 +177,8 @@ window.VideoJSPlayer = class VideoJSPlayer extends Player
                     $('.vjs-waiting').removeClass('vjs-waiting')
                 )
 
+                @initAssSubTracks(data, video[0])
+
                 # Workaround for Chrome-- it seems that the click bindings for
                 # the subtitle menu aren't quite set up until after the ready
                 # event finishes, so set a timeout for 1ms to force this code
@@ -234,6 +240,45 @@ window.VideoJSPlayer = class VideoJSPlayer extends Player
             cb(VOLUME)
 
     destroy: ->
+        if @octopus
+            try
+                @octopus.dispose()
+            catch e
+                console.error(e)
+            @octopus = null
         removeOld()
         if @player
             @player.dispose()
+
+    initAssSubTracks: (data, videoEl) ->
+        tracks = assTracks(data)
+        return unless tracks?.length
+
+        @subEntries = tracks.map((t) =>
+            track: @player.addTextTrack('subtitles', t.name, 'und')
+            url: t.url
+            default: !!t.default
+        )
+
+        @player.textTracks().on('change', => @syncSubs(videoEl, data))
+
+        # honour "default": true
+        for e in @subEntries when e.default
+            e.track.mode = 'showing'
+        setTimeout((=> @syncSubs(videoEl, data)), 0)
+
+    syncSubs: (videoEl, data) ->
+        active = (e for e in @subEntries when e.track.mode is 'showing')[0]
+        if not active
+            @octopus?.freeTrack()
+        else if @octopus
+            @octopus.setTrackByUrl(active.url)
+        else
+            @octopus = new SubtitlesOctopus(
+                video: videoEl
+                subUrl: active.url
+                fonts: data.meta.fonts ? []
+                workerUrl: '/js/octopus/subtitles-octopus-worker.js'
+                legacyWorkerUrl: '/js/octopus/subtitles-octopus-worker-legacy.js'
+                onError: (err) -> console.error('Octopus error', err)
+            )

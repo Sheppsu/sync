@@ -42,7 +42,7 @@ const AUDIO_ONLY_CONTENT_TYPES = new Set([
 const SUBTITLE_CONTENT_TYPES = new Set([
     'text/vtt',
     'text/ass'
-])
+]);
 
 export function lookup(url, opts) {
     if (!opts) opts = {};
@@ -147,6 +147,7 @@ export function convert(id, data) {
         direct: sources,
         audioTracks: data.audioTracks,
         textTracks: data.textTracks,
+        fonts: data.fonts,
         thumbnail: data.thumbnail, // Currently ignored by Media
         live: !!data.live          // Currently ignored by Media
     };
@@ -293,7 +294,7 @@ function validateTextTracks(textTracks) {
 }
 
 function validateFonts(fonts) {
-    if (typeof textTracks === 'undefined') {
+    if (typeof fonts === 'undefined') {
         return;
     }
 
@@ -303,6 +304,7 @@ function validateFonts(fonts) {
     for (let f of fonts) {
         if (typeof f !== 'string')
             throw new ValidationError('fonts must be a list of URLs');
+        validateURL(f);
     }
 }
 

@@ -51,7 +51,7 @@ class Database {
                     charset: 'utf8mb4'
                 }
             }
-        
+
             knexConfig = {
                 client: 'mysql',
                 connection,
@@ -308,7 +308,8 @@ module.exports.saveUserPlaylist = function (pl, username, plname, callback) {
                 embed: pl[i].media.meta.embed,
                 direct: pl[i].media.meta.direct,
                 textTracks: pl[i].media.meta.textTracks,
-                audioTracks: pl[i].media.meta.audioTracks
+                audioTracks: pl[i].media.meta.audioTracks,
+                fonts: pl[i].media.meta.fonts,
             }
         };
         time += pl[i].media.seconds || 0;

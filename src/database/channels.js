@@ -443,7 +443,8 @@ module.exports = {
             embed: media.meta.embed,
             direct: media.meta.direct,
             textTracks: media.meta.textTracks,
-            audioTracks: media.meta.audioTracks
+            audioTracks: media.meta.audioTracks,
+            fonts: media.meta.fonts,
         });
 
         db.query("INSERT INTO `channel_libraries` " +
